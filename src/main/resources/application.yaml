@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: OzShift_App
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/ozshift?serverTimezone=UTC&characterEncoding=UTF-8
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  thymeleaf:
+    cache: false
+
+  security:
+    user:
+      name: user
+      password: password
+
+server:
+  port: 8080
