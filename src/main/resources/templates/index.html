@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OzShift Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<nav class="navbar navbar-dark bg-dark mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="/">OzShift 🇦🇺</a>
+        <span class="navbar-text text-white" th:text="${username} + '님 환영합니다'"></span>
+    </div>
+</nav>
+
+<div class="container">
+    <div th:if="${role.contains('MANAGER')}" class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title">근무지(Workspace) 생성</h5>
+            <p class="card-text text-muted">방을 만들어 직원들을 초대하고 스케줄을 관리하세요.</p>
+            <form th:action="@{/workspace/create}" method="post" class="row g-3">
+                <div class="col-auto">
+                    <input type="text" name="name" class="form-control" placeholder="근무지 이름 (예: Melbourne Cafe)" required>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-success">방 만들기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div th:if="${role.contains('STAFF')}" class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title">워크스페이스 참여</h5>
+            <p class="card-text text-muted">매니저에게 받은 UUID 코드를 입력하세요.</p>
+            <form class="row g-3">
+                <div class="col-auto">
+                    <input type="text" class="form-control" placeholder="UUID 입력">
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">참여하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
