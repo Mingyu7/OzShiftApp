@@ -3,47 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OzShift Dashboard</title>
+    <title>OzShift - Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .card { border: none; border-radius: 12px; }
+        .table-container { background: white; border-radius: 12px; padding: 20px; }
+    </style>
 </head>
-<body class="bg-light">
-<nav class="navbar navbar-dark bg-dark mb-4">
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
     <div class="container">
-        <a class="navbar-brand" href="/">OzShift 🇦🇺</a>
-        <span class="navbar-text text-white" th:text="${username} + '님 환영합니다'"></span>
+        <a class="navbar-brand fw-bold" href="/">OzShift 🇦🇺</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+                <li class="nav-item me-3 mb-2 mb-lg-0">
+                    <span class="navbar-text text-white" th:text="${realName} + '님 환영합니다 (' + ${username} + ')'"></span>
+                </li>
+                <li class="nav-item">
+                    <form th:action="@{/logout}" method="post" class="m-0 d-grid">
+                        <button type="submit" class="btn btn-outline-light btn-sm">로그아웃</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
     </div>
 </nav>
 
 <div class="container">
-    <div th:if="${role.contains('MANAGER')}" class="card shadow-sm mb-4">
-        <div class="card-body">
-            <h5 class="card-title">근무지(Workspace) 생성</h5>
-            <p class="card-text text-muted">방을 만들어 직원들을 초대하고 스케줄을 관리하세요.</p>
-            <form th:action="@{/workspace/create}" method="post" class="row g-3">
-                <div class="col-auto">
-                    <input type="text" name="name" class="form-control" placeholder="근무지 이름 (예: Melbourne Cafe)" required>
-                </div>
-                <div class="col-auto">
-                    <button type="submit" class="btn btn-success">방 만들기</button>
-                </div>
-            </form>
+
+    <!-- Manager Section -->
+    <div th:if="${role.contains('MANAGER')}">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title fw-bold">새 근무지(Workspace) 만들기</h5>
+                <p class="card-text text-muted small">근무지를 생성하고 발급된 UUID를 직원에게 공유하세요.</p>
+                <form th:action="@{/workspace/create}" method="post" class="row g-2">
+                    <div class="col-12 col-md-8">
+                        <input type="text" name="name" class="form-control" placeholder="근무지 이름 (예: Sydney Central Cafe)" required>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <button type="submit" class="btn btn-success w-100">방 만들기</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div th:if="${workspaces != null and !workspaces.isEmpty()}" class="table-container shadow-sm">
+            <h5 class="fw-bold mb-3">내 워크스페이스 목록</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle text-nowrap">
+                    <thead class="table-light">
+                    <tr>
+                        <th>근무지 이름</th>
+                        <th>초대 코드 (UUID)</th>
+                        <th class="text-center">작업</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="ws : ${workspaces}">
+                        <td class="fw-semibold" th:text="${ws.name}">근무지명</td>
+                        <td>
+                            <span class="text-muted">••••••••-••••-••••-••••-••••••••••••</span>
+                            <input type="hidden" th:id="'uuid-' + ${ws.id}" th:value="${ws.uuid}">
+                        </td>
+                        <td class="text-center">
+                            <a th:href="@{/workspace/{id}/shift/add(id=${ws.id})}" class="btn btn-sm btn-primary me-1">스케줄 배정</a>
+                            <a th:href="@{/workspace/{id}/shift/list(id=${ws.id})}" class="btn btn-sm btn-info text-white me-1">스케줄 관리</a>
+                            <button class="btn btn-sm btn-outline-secondary"
+                                    th:onclick="'copyToClipboard(\'uuid-' + ${ws.id} + '\')'">코드 복사</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Controls -->
+            <nav th:if="${totalPages > 1}" class="mt-3">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                        <a class="page-link" th:href="@{/(page=${currentPage - 1})}">Previous</a>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link" th:text="${currentPage + 1} + ' / ' + ${totalPages}"></span>
+                    </li>
+                    <li class="page-item" th:classappend="${currentPage + 1 == totalPages} ? 'disabled'">
+                        <a class="page-link" th:href="@{/(page=${currentPage + 1})}">Next</a>
+                    </li>
+                </ul>
+            </nav>
         </div>
     </div>
 
-    <div th:if="${role.contains('STAFF')}" class="card shadow-sm mb-4">
-        <div class="card-body">
-            <h5 class="card-title">워크스페이스 참여</h5>
-            <p class="card-text text-muted">매니저에게 받은 UUID 코드를 입력하세요.</p>
-            <form class="row g-3">
-                <div class="col-auto">
-                    <input type="text" class="form-control" placeholder="UUID 입력">
-                </div>
-                <div class="col-auto">
-                    <button type="submit" class="btn btn-primary">참여하기</button>
-                </div>
-            </form>
+    <!-- Staff Section -->
+    <div th:if="${role.contains('STAFF')}">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title fw-bold">워크스페이스 참여하기</h5>
+                <p class="card-text text-muted small">매니저로부터 받은 36자리 초대 코드를 입력하세요.</p>
+                <form th:action="@{/workspace/join}" method="post" class="row g-2">
+                    <div class="col-12 col-md-8">
+                        <input type="text" name="uuid" class="form-control" placeholder="UUID를 입력하세요" required>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">참여하기</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="table-container shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold m-0">
+                    📋 나의 근무 일정 
+                    <span class="badge bg-secondary ms-2" style="font-size: 0.7em;" 
+                          th:text="${joinedWorkspaces != null ? joinedWorkspaces.size() : 0} + '개 참여중'"></span>
+                </h5>
+                
+                <span th:if="${joinedWorkspaces == null or joinedWorkspaces.isEmpty()}" class="text-danger small fw-bold">
+                    ⚠️ 참여한 워크스페이스가 없습니다.
+                </span>
+
+                <form th:if="${joinedWorkspaces != null and !joinedWorkspaces.isEmpty()}" action="/" method="get">
+                    <select name="workspaceId" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="" th:selected="${selectedWorkspaceId == null}">전체 보기</option>
+                        <option th:each="ws : ${joinedWorkspaces}" 
+                                th:value="${ws.id}" 
+                                th:text="${ws.name}"
+                                th:selected="${selectedWorkspaceId == ws.id}"></option>
+                    </select>
+                </form>
+            </div>
+            <div th:if="${myShifts == null or myShifts.isEmpty()}" class="text-center py-4 text-muted">
+                아직 배정된 스케줄이 없습니다.
+            </div>
+            <div th:if="${myShifts != null and !myShifts.isEmpty()}" class="table-responsive">
+                <table class="table table-hover align-middle text-nowrap">
+                    <thead class="table-light">
+                    <tr>
+                        <th>날짜</th>
+                        <th>시간</th>
+                        <th>근무지</th>
+                        <th>예상 급여</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="shift : ${myShifts}">
+                        <td th:text="${#temporals.format(shift.startTime, 'yyyy-MM-dd (E)')}">2026-01-20 (Tue)</td>
+                        <td>
+                            <span th:text="${#temporals.format(shift.startTime, 'HH:mm')}">09:00</span> ~ 
+                            <span th:text="${#temporals.format(shift.endTime, 'HH:mm')}">17:00</span>
+                        </td>
+                        <td th:text="${shift.workspace.name}">Cafe</td>
+                        <td class="fw-bold text-success" 
+                            th:with="hours=${T(java.time.Duration).between(shift.startTime, shift.endTime).toMinutes() / 60.0}, 
+                                     pay=${hours * shift.hourlyRate}"
+                            th:text="'$' + ${#numbers.formatDecimal(pay, 1, 2)}">
+                            $150.00
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Staff Shifts Pagination -->
+            <nav th:if="${shiftTotalPages > 1}" class="mt-3">
+                <ul class="pagination justify-content-center pagination-sm">
+                    <li class="page-item" th:classappend="${shiftCurrentPage == 0} ? 'disabled'">
+                        <a class="page-link" th:href="@{/(shiftPage=${shiftCurrentPage - 1}, workspaceId=${selectedWorkspaceId})}">Previous</a>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link" th:text="${shiftCurrentPage + 1} + ' / ' + ${shiftTotalPages}"></span>
+                    </li>
+                    <li class="page-item" th:classappend="${shiftCurrentPage + 1 == shiftTotalPages} ? 'disabled'">
+                        <a class="page-link" th:href="@{/(shiftPage=${shiftCurrentPage + 1}, workspaceId=${selectedWorkspaceId})}">Next</a>
+                    </li>
+                </ul>
+            </nav>
         </div>
     </div>
+
 </div>
+
+<script>
+    function copyToClipboard(elementId) {
+        const text = document.getElementById(elementId).value;
+        navigator.clipboard.writeText(text).then(() => {
+            alert("초대 코드가 클립보드에 복사되었습니다. 직원에게 공유하세요!");
+        }).catch(err => {
+            console.error('복사 실패:', err);
+        });
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

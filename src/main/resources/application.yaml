@@ -20,10 +20,16 @@ spring:
   thymeleaf:
     cache: false
 
+  devtools:
+    livereload:
+      enabled: true
+    restart:
+      enabled: true
+
   security:
     user:
       name: user
       password: password
 
 server:
-  port: 8080
+  port: 8081
