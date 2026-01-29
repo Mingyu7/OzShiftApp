@@ -8,7 +8,7 @@ public class OzShiftAppApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(OzShiftAppApplication.class, args);
-
+        System.out.println("--run--");
 	}
 
 }

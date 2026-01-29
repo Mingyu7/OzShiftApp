@@ -22,6 +22,16 @@ public class ShiftController {
     private final ShiftService shiftService;
     private final WorkspaceService workspaceService;
 
+    @GetMapping("/list")
+    public String shiftList(@PathVariable Long workspaceId, Model model) {
+        Workspace workspace = workspaceService.getWorkspaceById(workspaceId);
+        List<Shift> shifts = shiftService.getWorkspaceShifts(workspaceId, null); // null for memberId to get all shifts
+
+        model.addAttribute("workspace", workspace);
+        model.addAttribute("shifts", shifts);
+        return "shift_list";
+    }
+
     @GetMapping("/add")
     public String addShiftForm(@PathVariable Long workspaceId, Model model) {
         Workspace workspace = workspaceService.getWorkspaceById(workspaceId);

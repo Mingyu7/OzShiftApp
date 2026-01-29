@@ -128,15 +128,21 @@
                     ⚠️ 참여한 워크스페이스가 없습니다.
                 </span>
 
-                <form th:if="${joinedWorkspaces != null and !joinedWorkspaces.isEmpty()}" action="/" method="get">
-                    <select name="workspaceId" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="" th:selected="${selectedWorkspaceId == null}">전체 보기</option>
-                        <option th:each="ws : ${joinedWorkspaces}" 
-                                th:value="${ws.id}" 
-                                th:text="${ws.name}"
-                                th:selected="${selectedWorkspaceId == ws.id}"></option>
-                    </select>
-                </form>
+                <div th:if="${joinedWorkspaces != null and !joinedWorkspaces.isEmpty()}" class="d-flex align-items-center">
+                    <form id="filterForm" action="/" method="get" class="me-2">
+                        <select name="workspaceId" id="workspaceSelect" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="" th:selected="${selectedWorkspaceId == null}">전체 보기</option>
+                            <option th:each="ws : ${joinedWorkspaces}"
+                                    th:value="${ws.id}"
+                                    th:text="${ws.name}"
+                                    th:selected="${selectedWorkspaceId == ws.id}"></option>
+                        </select>
+                    </form>
+                    <a id="calendarViewBtn" href="#" class="btn btn-sm btn-outline-primary"
+                       th:classappend="${selectedWorkspaceId == null} ? 'disabled' : ''">
+                        📅 캘린더로 보기
+                    </a>
+                </div>
             </div>
             <div th:if="${myShifts == null or myShifts.isEmpty()}" class="text-center py-4 text-muted">
                 아직 배정된 스케줄이 없습니다.
@@ -190,6 +196,28 @@
 </div>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const workspaceSelect = document.getElementById('workspaceSelect');
+        const calendarBtn = document.getElementById('calendarViewBtn');
+
+        function updateCalendarButton() {
+            const selectedId = workspaceSelect.value;
+            if (selectedId) {
+                calendarBtn.href = `/workspace/${selectedId}`;
+                calendarBtn.classList.remove('disabled');
+            } else {
+                calendarBtn.href = '#';
+                calendarBtn.classList.add('disabled');
+            }
+        }
+
+        // Set initial state
+        updateCalendarButton();
+
+        // Update on change
+        workspaceSelect.addEventListener('change', updateCalendarButton);
+    });
+
     function copyToClipboard(elementId) {
         const text = document.getElementById(elementId).value;
         navigator.clipboard.writeText(text).then(() => {

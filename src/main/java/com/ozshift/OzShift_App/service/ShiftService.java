@@ -75,6 +75,10 @@ public class ShiftService {
         return shiftRepository.findByWorkspaceOrderByStartTimeAsc(workspace);
     }
 
+    public List<Shift> getShiftsByUserAndWorkspace(User user, Workspace workspace) {
+        return shiftRepository.findByUserIdAndWorkspaceOrderByStartTimeAsc(user.getId(), workspace);
+    }
+
     public Shift getShiftById(Long id) {
         return shiftRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid shift ID"));

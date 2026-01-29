@@ -20,27 +20,6 @@
         </div>
     </div>
 
-    <!-- 필터링 섹션 -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body py-3">
-            <form th:action="@{/workspace/{id}/shift/list(id=${workspace.id})}" method="get" class="row g-2 align-items-center">
-                <div class="col-12 col-sm-auto">
-                    <label for="memberId" class="col-form-label fw-bold">직원 필터:</label>
-                </div>
-                <div class="col-12 col-sm-auto flex-grow-1">
-                    <select class="form-select" name="memberId" id="memberId" onchange="this.form.submit()">
-                        <option value="">전체 직원 보기</option>
-                        <option th:each="member : ${members}" 
-                                th:value="${member.id}" 
-                                th:text="${member.user.email} + ' (' + ${member.user.name} + ')'"
-                                th:selected="${selectedMemberId == member.id}">
-                        </option>
-                    </select>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- 스케줄 테이블 -->
     <div class="card shadow-sm">
         <div class="card-body p-0">

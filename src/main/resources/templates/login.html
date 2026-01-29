@@ -19,6 +19,10 @@
                     <label class="form-label">비밀번호</label>
                     <input type="password" name="password" class="form-control" required>
                 </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="remember-me" name="remember-me">
+                    <label class="form-check-label" for="remember-me">로그인 유지</label>
+                </div>
                 <button type="submit" class="btn btn-primary w-100">로그인</button>
                 <div class="text-center mt-3">
                     <a th:href="@{/signup}">회원가입 하러가기</a>
