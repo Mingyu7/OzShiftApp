@@ -20,4 +20,6 @@ public class User {
     private String name;
 
     private String role; // MANAGER 또는 STAFF
+
+    private Double totalEarnings = 0.0;
 }

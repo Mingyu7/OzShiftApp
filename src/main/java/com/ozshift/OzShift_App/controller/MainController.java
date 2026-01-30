@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.Duration;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -59,11 +60,22 @@ public class MainController {
                 // 선택된 워크스페이스(또는 전체)의 스케줄 조회 (페이징)
                 Pageable shiftPageable = PageRequest.of(shiftPage, 5, Sort.by("startTime").descending());
                 Page<com.ozshift.OzShift_App.entity.Shift> shiftPageObj = shiftService.getShiftsByUser(user, workspaceId, shiftPageable);
+
+                // 전체 예상 급여 계산
+                List<com.ozshift.OzShift_App.entity.Shift> allShifts = shiftService.getAllShiftsByUser(user, workspaceId);
+                double totalExpectedPay = 0.0;
+                for (com.ozshift.OzShift_App.entity.Shift shift : allShifts) {
+                    Duration duration = Duration.between(shift.getStartTime(), shift.getEndTime());
+                    double hoursWorked = duration.toMinutes() / 60.0;
+                    totalExpectedPay += hoursWorked * shift.getHourlyRate();
+                }
                 
                 model.addAttribute("myShifts", shiftPageObj.getContent());
                 model.addAttribute("shiftCurrentPage", shiftPage);
                 model.addAttribute("shiftTotalPages", shiftPageObj.getTotalPages());
                 model.addAttribute("selectedWorkspaceId", workspaceId);
+                model.addAttribute("totalEarnings", user.getTotalEarnings() != null ? user.getTotalEarnings() : 0.0);
+                model.addAttribute("totalExpectedPay", totalExpectedPay);
             }
         }
         return "index";

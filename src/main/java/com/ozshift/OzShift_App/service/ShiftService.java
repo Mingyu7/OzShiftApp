@@ -7,12 +7,15 @@ import com.ozshift.OzShift_App.entity.Workspace;
 import com.ozshift.OzShift_App.repository.MemberRepository;
 import com.ozshift.OzShift_App.repository.ShiftRepository;
 import com.ozshift.OzShift_App.repository.WorkspaceRepository;
+import com.ozshift.OzShift_App.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -24,6 +27,7 @@ public class ShiftService {
     private final ShiftRepository shiftRepository;
     private final WorkspaceRepository workspaceRepository;
     private final MemberRepository memberRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public void addShift(Long workspaceId, Long memberId, LocalDateTime startTime, LocalDateTime endTime, Double hourlyRate) {
@@ -60,6 +64,17 @@ public class ShiftService {
             }
         }
         return shiftRepository.findByUserOrderByStartTimeDesc(user, pageable);
+    }
+
+    public List<Shift> getAllShiftsByUser(User user, Long workspaceId) {
+        if (workspaceId != null) {
+            Workspace workspace = workspaceRepository.findById(workspaceId)
+                    .orElse(null);
+            if (workspace != null) {
+                return shiftRepository.findByUserAndWorkspaceOrderByStartTimeDesc(user, workspace);
+            }
+        }
+        return shiftRepository.findByUserOrderByStartTimeDesc(user);
     }
 
     public List<Shift> getWorkspaceShifts(Long workspaceId, Long memberId) {
@@ -104,5 +119,26 @@ public class ShiftService {
     @Transactional
     public void deleteShift(Long shiftId) {
         shiftRepository.deleteById(shiftId);
+    }
+
+    @Transactional
+    @Scheduled(cron = "0 0 2 * * ?") // 매일 새벽 2시에 실행
+    public void processOldShifts() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Shift> oldShifts = shiftRepository.findAllByEndTimeBefore(now);
+
+        for (Shift shift : oldShifts) {
+            User user = shift.getUser();
+            Duration duration = Duration.between(shift.getStartTime(), shift.getEndTime());
+            double hoursWorked = duration.toMinutes() / 60.0;
+            double earnings = hoursWorked * shift.getHourlyRate();
+
+            user.setTotalEarnings(user.getTotalEarnings() + earnings);
+            userRepository.save(user);
+        }
+
+        if (!oldShifts.isEmpty()) {
+            shiftRepository.deleteAllInBatch(oldShifts);
+        }
     }
 }

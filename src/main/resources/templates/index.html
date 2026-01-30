@@ -116,14 +116,22 @@
             </div>
         </div>
 
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="card-title fw-bold" th:text="${selectedWorkspaceId == null} ? '💰 전체 워크스페이스 총 예상 급여' : '💰 총 예상 급여'">💰 총 예상 급여</h5>
+                <p class="card-text fs-4 fw-bold text-primary" th:text="'$' + ${#numbers.formatDecimal(totalExpectedPay, 1, 2)}">$0.00</p>
+                <small class="text-muted">현재 표시된 근무에 대한 총 예상 급여입니다.</small>
+            </div>
+        </div>
+
         <div class="table-container shadow-sm">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="fw-bold m-0">
-                    📋 나의 근무 일정 
-                    <span class="badge bg-secondary ms-2" style="font-size: 0.7em;" 
+                    📋 나의 근무 일정
+                    <span class="badge bg-secondary ms-2" style="font-size: 0.7em;"
                           th:text="${joinedWorkspaces != null ? joinedWorkspaces.size() : 0} + '개 참여중'"></span>
                 </h5>
-                
+
                 <span th:if="${joinedWorkspaces == null or joinedWorkspaces.isEmpty()}" class="text-danger small fw-bold">
                     ⚠️ 참여한 워크스페이스가 없습니다.
                 </span>
@@ -138,8 +146,7 @@
                                     th:selected="${selectedWorkspaceId == ws.id}"></option>
                         </select>
                     </form>
-                    <a id="calendarViewBtn" href="#" class="btn btn-sm btn-outline-primary"
-                       th:classappend="${selectedWorkspaceId == null} ? 'disabled' : ''">
+                    <a id="calendarViewBtn" href="#" class="btn btn-sm btn-outline-primary">
                         📅 캘린더로 보기
                     </a>
                 </div>
@@ -204,10 +211,10 @@
             const selectedId = workspaceSelect.value;
             if (selectedId) {
                 calendarBtn.href = `/workspace/${selectedId}`;
-                calendarBtn.classList.remove('disabled');
+                calendarBtn.style.display = 'block';
             } else {
                 calendarBtn.href = '#';
-                calendarBtn.classList.add('disabled');
+                calendarBtn.style.display = 'none';
             }
         }
 

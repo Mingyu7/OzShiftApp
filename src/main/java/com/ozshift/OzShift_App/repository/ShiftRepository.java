@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ShiftRepository extends JpaRepository<Shift, Long> {
@@ -26,4 +27,6 @@ public interface ShiftRepository extends JpaRepository<Shift, Long> {
     List<Shift> findByUserIdAndWorkspaceOrderByStartTimeAsc(@Param("userId") Long userId, @Param("workspace") Workspace workspace);
 
     List<Shift> findByUser(User user);
+
+    List<Shift> findAllByEndTimeBefore(LocalDateTime endTime);
 }
