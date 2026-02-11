@@ -92,4 +92,19 @@ public class MainController {
         workspaceService.joinWorkspace(uuid, userDetails.getUsername());
         return "redirect:/";
     }
+
+    @GetMapping("/my-workplace")
+    public String myWorkplace(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+        if (userDetails != null) {
+            User user = userService.getUserByEmail(userDetails.getUsername());
+            
+            model.addAttribute("username", userDetails.getUsername());
+            model.addAttribute("realName", user.getName());
+            model.addAttribute("role", userDetails.getAuthorities().toString());
+
+            List<Workspace> joinedWorkspaces = workspaceService.getWorkspacesByUser(user);
+            model.addAttribute("joinedWorkspaces", joinedWorkspaces);
+        }
+        return "my_workplace";
+    }
 }

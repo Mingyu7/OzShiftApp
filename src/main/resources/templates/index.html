@@ -24,6 +24,9 @@
                 <li class="nav-item me-3 mb-2 mb-lg-0">
                     <span class="navbar-text text-white" th:text="${realName} + '님 환영합니다 (' + ${username} + ')'"></span>
                 </li>
+                <li th:if="${role.contains('STAFF')}" class="nav-item me-3 mb-2 mb-lg-0">
+                    <a class="nav-link" href="/my-workplace">나의 근무지</a>
+                </li>
                 <li class="nav-item">
                     <form th:action="@{/logout}" method="post" class="m-0 d-grid">
                         <button type="submit" class="btn btn-outline-light btn-sm">로그아웃</button>
