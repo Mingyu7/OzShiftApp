@@ -5,6 +5,7 @@ import com.ozshift.OzShift_App.entity.Workspace;
 import com.ozshift.OzShift_App.service.ShiftService;
 import com.ozshift.OzShift_App.service.UserService;
 import com.ozshift.OzShift_App.service.WorkspaceService;
+import com.ozshift.OzShift_App.service.WorkRecordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,6 +32,8 @@ public class MainController {
     private final ShiftService shiftService;
     private final UserService userService;
 
+    private final WorkRecordService workRecordService;
+
     @GetMapping("/")
     public String index(@AuthenticationPrincipal UserDetails userDetails, 
                         @RequestParam(required = false) Long workspaceId,
@@ -50,6 +53,7 @@ public class MainController {
                 Page<Workspace> workspacePage = workspaceService.getMyWorkspaces(userDetails.getUsername(), pageable);
                 
                 model.addAttribute("workspaces", workspacePage.getContent());
+                model.addAttribute("managedWorkspaces", workspacePage.getContent()); // 추가
                 model.addAttribute("currentPage", page);
                 model.addAttribute("totalPages", workspacePage.getTotalPages());
             } else {
@@ -102,8 +106,17 @@ public class MainController {
             model.addAttribute("realName", user.getName());
             model.addAttribute("role", userDetails.getAuthorities().toString());
 
+            // 매니저인 경우 본인이 만든 방 목록을 가져옴
+            if (userDetails.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_MANAGER"))) {
+                List<Workspace> managedWorkspaces = workspaceService.getMyWorkspaces(userDetails.getUsername());
+                model.addAttribute("managedWorkspaces", managedWorkspaces);
+            }
+
             List<Workspace> joinedWorkspaces = workspaceService.getWorkspacesByUser(user);
             model.addAttribute("joinedWorkspaces", joinedWorkspaces);
+
+            // 현재 진행 중인 근무 기록 확인
+            model.addAttribute("activeRecord", workRecordService.getActiveRecord(userDetails.getUsername()));
         }
         return "my_workplace";
     }

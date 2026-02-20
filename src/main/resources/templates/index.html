@@ -24,8 +24,11 @@
                 <li class="nav-item me-3 mb-2 mb-lg-0">
                     <span class="navbar-text text-white" th:text="${realName} + '님 환영합니다 (' + ${username} + ')'"></span>
                 </li>
-                <li th:if="${role.contains('STAFF')}" class="nav-item me-3 mb-2 mb-lg-0">
+                <li class="nav-item me-3 mb-2 mb-lg-0">
                     <a class="nav-link" href="/my-workplace">나의 근무지</a>
+                </li>
+                <li class="nav-item me-3 mb-2 mb-lg-0">
+                    <a class="nav-link" href="/mypage">마이페이지</a>
                 </li>
                 <li class="nav-item">
                     <form th:action="@{/logout}" method="post" class="m-0 d-grid">
@@ -75,6 +78,7 @@
                             <input type="hidden" th:id="'uuid-' + ${ws.id}" th:value="${ws.uuid}">
                         </td>
                         <td class="text-center">
+                            <a th:href="@{/work/manage/{id}(id=${ws.id})}" class="btn btn-sm btn-warning text-dark me-1">근무 기록/승인</a>
                             <a th:href="@{/workspace/{id}/shift/add(id=${ws.id})}" class="btn btn-sm btn-primary me-1">스케줄 배정</a>
                             <a th:href="@{/workspace/{id}/shift/list(id=${ws.id})}" class="btn btn-sm btn-info text-white me-1">스케줄 관리</a>
                             <button class="btn btn-sm btn-outline-secondary"
