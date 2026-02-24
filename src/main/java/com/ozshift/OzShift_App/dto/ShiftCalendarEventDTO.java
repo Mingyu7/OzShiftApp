@@ -8,13 +8,15 @@ public class ShiftCalendarEventDTO {
     private LocalDateTime end;
     private double hourlyRate;
     private double pay;
+    private String userName;
 
-    public ShiftCalendarEventDTO(String title, LocalDateTime start, LocalDateTime end, double hourlyRate, double pay) {
+    public ShiftCalendarEventDTO(String title, LocalDateTime start, LocalDateTime end, double hourlyRate, double pay, String userName) {
         this.title = title;
         this.start = start;
         this.end = end;
         this.hourlyRate = hourlyRate;
         this.pay = pay;
+        this.userName = userName;
     }
 
     // Getters and Setters
@@ -56,5 +58,13 @@ public class ShiftCalendarEventDTO {
 
     public void setPay(double pay) {
         this.pay = pay;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 }

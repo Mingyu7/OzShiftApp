@@ -3,79 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Shifts - OzShift</title>
+    <title>스케줄 관리 - OzShift</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --bg-color: #f8f9fa;
+        }
+        body { background-color: var(--bg-color); font-family: 'Inter', -apple-system, sans-serif; }
+        .page-header { background: white; padding: 2rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.02); margin-bottom: 2rem; border-bottom: 1px solid #edf2f7; }
+        .breadcrumb-item a { color: var(--secondary-color); text-decoration: none; font-size: 0.9rem; }
+        
+        .card-main { border: none; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); overflow: hidden; }
+        .table thead th { background-color: #f8f9fa; color: #6c757d; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; padding: 1rem; border-bottom: 2px solid #edf2f7; }
+        .table tbody td { padding: 1.25rem 1rem; vertical-align: middle; border-bottom: 1px solid #f1f3f5; }
+        
+        .member-info { display: flex; align-items: center; gap: 12px; }
+        .member-avatar { width: 36px; height: 36px; background-color: #e9ecef; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #adb5bd; font-weight: bold; }
+        .member-name { font-weight: 700; color: #343a40; margin-bottom: 0; }
+        .member-email { font-size: 0.8rem; color: #adb5bd; }
+        
+        .time-badge { padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; background-color: #f8f9fa; border: 1px solid #dee2e6; color: #495057; }
+        .pay-amount { font-weight: 700; color: #198754; font-size: 1.1rem; }
+        .pay-label { font-size: 0.8rem; color: #6c757d; }
+        
+        .btn-action { width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s; }
+        .btn-edit { color: var(--primary-color); background-color: rgba(13, 110, 253, 0.05); border: 1px solid rgba(13, 110, 253, 0.1); }
+        .btn-edit:hover { background-color: var(--primary-color); color: white; }
+        .btn-delete { color: #dc3545; background-color: rgba(220, 53, 69, 0.05); border: 1px solid rgba(220, 53, 69, 0.1); }
+        .btn-delete:hover { background-color: #dc3545; color: white; }
+    </style>
 </head>
-<body class="bg-light">
+<body>
 
-<div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold" th:text="${workspace.name} + ' - 스케줄 관리'">Workspace Name</h2>
-            <p class="text-muted">직원들의 근무 일정을 확인하세요.</p>
-        </div>
-        <div>
-            <a th:href="@{/workspace/{id}/shift/add(id=${workspace.id})}" class="btn btn-primary">+ 스케줄 추가</a>
-            <a href="/" class="btn btn-outline-secondary">대시보드</a>
+<div class="page-header">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a href="/">대시보드</a></li>
+                <li class="breadcrumb-item active" aria-current="page" th:text="${workspace.name}">근무지명</li>
+            </ol>
+        </nav>
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-calendar-check me-2 text-primary"></i>스케줄 관리
+                </h3>
+                <p class="text-muted small mb-0 mt-1">이 워크스페이스에 등록된 모든 직원의 근무 일정을 관리합니다.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a th:href="@{/workspace/{id}/shift/add(id=${workspace.id})}" class="btn btn-primary px-4 rounded-pill">
+                    <i class="bi bi-plus-lg me-1"></i> 스케줄 추가
+                </a>
+                <a href="/" class="btn btn-outline-secondary px-4 rounded-pill">
+                    <i class="bi bi-house me-1"></i> 홈
+                </a>
+            </div>
         </div>
     </div>
+</div>
 
-    <!-- 스케줄 테이블 -->
-    <div class="card shadow-sm">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 text-nowrap">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="ps-4">직원 이름</th>
-                            <th>날짜</th>
-                            <th>시간</th>
-                            <th>총 근무시간</th>
-                            <th>시급(AUD)</th>
-                            <th>예상 일급</th>
-                            <th class="text-center">관리</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:if="${shifts.isEmpty()}">
-                            <td colspan="7" class="text-center py-5 text-muted">등록된 스케줄이 없습니다.</td>
-                        </tr>
-                        <tr th:each="shift : ${shifts}">
-                            <td class="ps-4">
-                                <span class="fw-bold" th:text="${shift.user.name}">Name</span><br>
-                                <small class="text-muted" th:text="${shift.user.email}">Email</small>
-                            </td>
-                            <td th:text="${#temporals.format(shift.startTime, 'yyyy-MM-dd (E)')}">Date</td>
-                            <td>
-                                <span class="badge bg-light text-dark border">
-                                    <span th:text="${#temporals.format(shift.startTime, 'HH:mm')}">09:00</span> ~ 
-                                    <span th:text="${#temporals.format(shift.endTime, 'HH:mm')}">17:00</span>
-                                </span>
-                            </td>
-                            <td th:with="hours=${T(java.time.Duration).between(shift.startTime, shift.endTime).toMinutes() / 60.0}">
-                                <span th:text="${#numbers.formatDecimal(hours, 1, 1)} + ' hrs'">8.0 hrs</span>
-                            </td>
-                            <td th:text="'$' + ${shift.hourlyRate}">$25.00</td>
-                            <td class="fw-bold text-success" 
+<div class="container pb-5">
+    <div class="card card-main shadow-sm bg-white">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th class="ps-4">직원 정보</th>
+                        <th>근무 일자</th>
+                        <th>근무 시간</th>
+                        <th>시급 & 일급</th>
+                        <th class="text-center">작업</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${shifts.isEmpty()}">
+                        <td colspan="5" class="text-center py-5">
+                            <i class="bi bi-inbox text-muted display-4"></i>
+                            <p class="mt-3 text-muted">등록된 스케줄이 없습니다.</p>
+                        </td>
+                    </tr>
+                    <tr th:each="shift : ${shifts}">
+                        <td class="ps-4">
+                            <div class="member-info">
+                                <div class="member-avatar" th:text="${#strings.substring(shift.user.name, 0, 1)}">N</div>
+                                <div>
+                                    <p class="member-name" th:text="${shift.user.name}">직원 이름</p>
+                                    <p class="member-email" th:text="${shift.user.email}">email@address.com</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-bold text-dark" th:text="${#temporals.format(shift.startTime, 'yyyy-MM-dd (E)')}">2026-01-01</div>
+                            <div class="text-muted small" th:with="hours=${T(java.time.Duration).between(shift.startTime, shift.endTime).toMinutes() / 60.0}" 
+                                 th:text="${#numbers.formatDecimal(hours, 1, 1)} + '시간 근무'">8시간 근무</div>
+                        </td>
+                        <td>
+                            <span class="time-badge">
+                                <i class="bi bi-clock me-1"></i>
+                                <span th:text="${#temporals.format(shift.startTime, 'HH:mm')}">09:00</span> - 
+                                <span th:text="${#temporals.format(shift.endTime, 'HH:mm')}">17:00</span>
+                            </span>
+                        </td>
+                        <td>
+                            <div class="pay-amount" 
                                 th:with="hours=${T(java.time.Duration).between(shift.startTime, shift.endTime).toMinutes() / 60.0}, 
                                          pay=${hours * shift.hourlyRate}"
                                 th:text="'$' + ${#numbers.formatDecimal(pay, 1, 2)}">
                                 $200.00
-                            </td>
-                            <td class="text-center">
-                                <div class="btn-group btn-group-sm">
-                                    <a th:href="@{/workspace/{wid}/shift/edit/{sid}(wid=${workspace.id}, sid=${shift.id})}" 
-                                       class="btn btn-outline-primary">수정</a>
-                                    <form th:action="@{/workspace/{wid}/shift/delete/{sid}(wid=${workspace.id}, sid=${shift.id})}" 
-                                          method="post" onsubmit="return confirm('정말 삭제하시겠습니까?');" style="display: inline;">
-                                        <button type="submit" class="btn btn-outline-danger">삭제</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                            </div>
+                            <div class="pay-label" th:text="'AUD ' + ${shift.hourlyRate} + '/hr'">AUD 25.00/hr</div>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2">
+                                <a th:href="@{/workspace/{wid}/shift/edit/{sid}(wid=${workspace.id}, sid=${shift.id})}" 
+                                   class="btn btn-edit btn-action" title="수정">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+                                <form th:action="@{/workspace/{wid}/shift/delete/{sid}(wid=${workspace.id}, sid=${shift.id})}" 
+                                      method="post" onsubmit="return confirm('정말 이 스케줄을 삭제하시겠습니까?');" class="d-inline">
+                                    <button type="submit" class="btn btn-delete btn-action" title="삭제">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
