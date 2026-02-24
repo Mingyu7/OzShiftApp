@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>근무 관리 - OzShift</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .container { margin-top: 50px; }
+        .card { border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>근무 기록 및 승인</h2>
+            <a href="/" class="btn btn-secondary">홈으로</a>
+        </div>
+
+        <div class="card p-4">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>이름</th>
+                            <th>시작 시간</th>
+                            <th>종료 시간</th>
+                            <th>위치 (시작)</th>
+                            <th>상태</th>
+                            <th>작업</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="record : ${records}">
+                            <td th:text="${record.user.name}">이름</td>
+                            <td th:text="${#temporals.format(record.startTime, 'yyyy-MM-dd HH:mm')}">시작</td>
+                            <td th:text="${record.endTime != null ? #temporals.format(record.endTime, 'yyyy-MM-dd HH:mm') : '-'}">종료</td>
+                            <td>
+                                <small th:text="'Lat: ' + ${record.startLatitude} + ', Lon: ' + ${record.startLongitude}">위치</small>
+                            </td>
+                            <td>
+                                <span th:if="${record.status.name() == 'PENDING'}" class="badge bg-warning text-dark">대기중</span>
+                                <span th:if="${record.status.name() == 'APPROVED'}" class="badge bg-success">승인됨</span>
+                                <span th:if="${record.status.name() == 'REJECTED'}" class="badge bg-danger">거절됨</span>
+                            </td>
+                            <td>
+                                <div th:if="${record.status.name() == 'PENDING'}">
+                                    <button class="btn btn-sm btn-outline-success" th:onclick="'approveRecord(' + ${record.id} + ')'">승인</button>
+                                    <button class="btn btn-sm btn-outline-danger" th:onclick="'rejectRecord(' + ${record.id} + ')'">거절</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(records)}">
+                            <td colspan="6" class="text-center">기록이 없습니다.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function approveRecord(id) {
+            if (confirm('이 근무를 승인하시겠습니까?')) {
+                $.post('/work/approve/' + id, function() {
+                    location.reload();
+                });
+            }
+        }
+        function rejectRecord(id) {
+            if (confirm('이 근무를 거절하시겠습니까?')) {
+                $.post('/work/reject/' + id, function() {
+                    location.reload();
+                });
+            }
+        }
+    </script>
+</body>
+</html>

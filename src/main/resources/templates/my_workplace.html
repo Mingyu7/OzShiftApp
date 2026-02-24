@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OzShift - My Workplace</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .card { border: none; border-radius: 12px; }
+        .table-container { background: white; border-radius: 12px; padding: 20px; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/">OzShift 🇦🇺</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+                <li class="nav-item me-3 mb-2 mb-lg-0">
+                    <span class="navbar-text text-white" th:text="${realName} + '님 환영합니다 (' + ${username} + ')'"></span>
+                </li>
+                <li class="nav-item">
+                    <form th:action="@{/logout}" method="post" class="m-0 d-grid">
+                        <button type="submit" class="btn btn-outline-light btn-sm">로그아웃</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+
+    <!-- Manager Section -->
+    <div th:if="${role.contains('MANAGER')}">
+        <div class="table-container shadow-sm mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold m-0">
+                    🛠️ 내가 운영 중인 근무지
+                </h5>
+            </div>
+            <div th:if="${managedWorkspaces == null or managedWorkspaces.isEmpty()}" class="text-center py-4 text-muted">
+                현재 운영 중인 워크스페이스가 없습니다.
+            </div>
+            <div th:if="${managedWorkspaces != null and !managedWorkspaces.isEmpty()}" class="table-responsive">
+                <table class="table table-hover align-middle text-nowrap">
+                    <thead class="table-light">
+                    <tr>
+                        <th>근무지 이름</th>
+                        <th class="text-center">작업</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="ws : ${managedWorkspaces}">
+                        <td class="fw-semibold" th:text="${ws.name}">워크스페이스명</td>
+                        <td class="text-center">
+                            <a th:href="@{/work/manage/{id}(id=${ws.id})}" class="btn btn-sm btn-info text-white me-1">근무 관리/승인</a>
+                            <a th:href="@{/workspace/{id}/admin/board(id=${ws.id})}" class="btn btn-sm btn-secondary text-white">전체 스케줄</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff Section -->
+    <div th:if="${role.contains('STAFF')}">
+        <div class="table-container shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold m-0">
+                    🏢 나의 근무지
+                </h5>
+            </div>
+            <div th:if="${joinedWorkspaces == null or joinedWorkspaces.isEmpty()}" class="text-center py-4 text-muted">
+                아직 참여한 워크스페이스가 없습니다.
+            </div>
+            <div th:if="${joinedWorkspaces != null and !joinedWorkspaces.isEmpty()}" class="table-responsive">
+                <table class="table table-hover align-middle text-nowrap">
+                    <thead class="table-light">
+                    <tr>
+                        <th>근무지 이름</th>
+                        <th class="text-center">작업</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="ws : ${joinedWorkspaces}">
+                        <td class="fw-semibold" th:text="${ws.name}">근무지명</td>
+                        <td class="text-center">
+                            <div th:if="${activeRecord == null}">
+                                <button class="btn btn-sm btn-primary" th:onclick="|startWork(${ws.id})|">근무 시작</button>
+                            </div>
+                            <div th:if="${activeRecord != null && activeRecord.workspace.id == ws.id}">
+                                <button class="btn btn-sm btn-danger" th:onclick="|finishWork(${activeRecord.id})|">근무 종료</button>
+                            </div>
+                            <div th:if="${activeRecord != null && activeRecord.workspace.id != ws.id}">
+                                <span class="badge bg-secondary">다른 곳에서 근무 중</span>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function startWork(workspaceId) {
+        if (!confirm('현재 위치에서 근무를 시작하시겠습니까?')) return;
+        
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const latitude = position.coords.latitude;
+                const longitude = position.coords.longitude;
+
+                const params = new URLSearchParams();
+                params.append('workspaceId', workspaceId);
+                params.append('latitude', latitude);
+                params.append('longitude', longitude);
+
+                fetch('/work/start', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: params
+                }).then(response => {
+                    if (response.ok) {
+                        alert('근무가 시작되었습니다. 매니저 승인 대기 중입니다.');
+                        location.reload();
+                    } else {
+                        response.text().then(text => alert('실패: ' + text));
+                    }
+                }).catch(error => {
+                    console.error('Error:', error);
+                    alert('오류가 발생했습니다.');
+                });
+            }, function(error) {
+                console.error('Geolocation error:', error);
+                alert('위치 정보를 가져올 수 없습니다. 브라우저의 위치 권한을 허용해 주세요.');
+            });
+        } else {
+            alert('이 브라우저는 위치 정보를 지원하지 않습니다.');
+        }
+    }
+
+    function finishWork(recordId) {
+        if (!confirm('현재 위치에서 근무를 종료하시겠습니까?')) return;
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const latitude = position.coords.latitude;
+                const longitude = position.coords.longitude;
+
+                const params = new URLSearchParams();
+                params.append('recordId', recordId);
+                params.append('latitude', latitude);
+                params.append('longitude', longitude);
+
+                fetch('/work/finish', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: params
+                }).then(response => {
+                    if (response.ok) {
+                        alert('근무가 종료되었습니다.');
+                        location.reload();
+                    } else {
+                        response.text().then(text => alert('실패: ' + text));
+                    }
+                }).catch(error => {
+                    console.error('Error:', error);
+                    alert('오류가 발생했습니다.');
+                });
+            }, function(error) {
+                console.error('Geolocation error:', error);
+                alert('위치 정보를 가져올 수 없지만 종료 처리를 시도합니다.');
+                // 위치 정보 없이 종료 시도 (선택 사항)
+            });
+        } else {
+            alert('이 브라우저는 위치 정보를 지원하지 않습니다.');
+        }
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
