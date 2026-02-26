@@ -25,6 +25,7 @@
                             <th>이름</th>
                             <th>시작 시간</th>
                             <th>종료 시간</th>
+                            <th>휴식 시간 (분)</th>
                             <th>위치 (시작)</th>
                             <th>상태</th>
                             <th>작업</th>
@@ -35,6 +36,7 @@
                             <td th:text="${record.user.name}">이름</td>
                             <td th:text="${#temporals.format(record.startTime, 'yyyy-MM-dd HH:mm')}">시작</td>
                             <td th:text="${record.endTime != null ? #temporals.format(record.endTime, 'yyyy-MM-dd HH:mm') : '-'}">종료</td>
+                            <td th:text="${record.totalBreakMinutes + '분'}">0분</td>
                             <td>
                                 <small th:text="'Lat: ' + ${record.startLatitude} + ', Lon: ' + ${record.startLongitude}">위치</small>
                             </td>

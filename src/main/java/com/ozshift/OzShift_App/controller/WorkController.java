@@ -40,6 +40,20 @@ public class WorkController {
         return ResponseEntity.ok("Work finished");
     }
 
+    @PostMapping("/work/break/start")
+    @ResponseBody
+    public ResponseEntity<String> startBreak(@RequestParam Long recordId) {
+        workRecordService.startBreak(recordId);
+        return ResponseEntity.ok("Break started");
+    }
+
+    @PostMapping("/work/break/finish")
+    @ResponseBody
+    public ResponseEntity<String> finishBreak(@RequestParam Long recordId) {
+        workRecordService.finishBreak(recordId);
+        return ResponseEntity.ok("Break finished");
+    }
+
     @GetMapping("/work/manage/{workspaceId}")
     public String manageWork(@PathVariable Long workspaceId, Model model) {
         List<WorkRecord> records = workRecordService.getRecordsByWorkspace(workspaceId);

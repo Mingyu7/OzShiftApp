@@ -56,9 +56,41 @@ public class WorkRecordService {
     public void finishWork(Long workRecordId, Double latitude, Double longitude) {
         WorkRecord workRecord = workRecordRepository.findById(workRecordId)
                 .orElseThrow(() -> new IllegalArgumentException("Work record not found"));
+
+        if (workRecord.getBreakStartTime() != null) {
+            finishBreak(workRecordId);
+        }
+
         workRecord.setEndTime(LocalDateTime.now());
         workRecord.setEndLatitude(latitude);
         workRecord.setEndLongitude(longitude);
+        workRecordRepository.save(workRecord);
+    }
+
+    @Transactional
+    public void startBreak(Long workRecordId) {
+        WorkRecord workRecord = workRecordRepository.findById(workRecordId)
+                .orElseThrow(() -> new IllegalArgumentException("Work record not found"));
+        if (workRecord.getBreakStartTime() != null) {
+            throw new IllegalStateException("Already on a break");
+        }
+        workRecord.setBreakStartTime(LocalDateTime.now());
+        workRecordRepository.save(workRecord);
+    }
+
+    @Transactional
+    public void finishBreak(Long workRecordId) {
+        WorkRecord workRecord = workRecordRepository.findById(workRecordId)
+                .orElseThrow(() -> new IllegalArgumentException("Work record not found"));
+        if (workRecord.getBreakStartTime() == null) {
+            throw new IllegalStateException("Not on a break");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        long minutes = java.time.Duration.between(workRecord.getBreakStartTime(), now).toMinutes();
+
+        workRecord.setTotalBreakMinutes(workRecord.getTotalBreakMinutes() + (int) minutes);
+        workRecord.setBreakStartTime(null);
         workRecordRepository.save(workRecord);
     }
 

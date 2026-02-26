@@ -96,7 +96,11 @@
                                 <button class="btn btn-sm btn-primary" th:onclick="|startWork(${ws.id})|">근무 시작</button>
                             </div>
                             <div th:if="${activeRecord != null && activeRecord.workspace.id == ws.id}">
-                                <button class="btn btn-sm btn-danger" th:onclick="|finishWork(${activeRecord.id})|">근무 종료</button>
+                                <div class="d-flex gap-2 justify-content-center">
+                                    <button th:if="${activeRecord.breakStartTime == null}" class="btn btn-sm btn-warning" th:onclick="|startBreak(${activeRecord.id})|">휴식 시작</button>
+                                    <button th:if="${activeRecord.breakStartTime != null}" class="btn btn-sm btn-outline-warning" th:onclick="|finishBreak(${activeRecord.id})|">휴식 종료</button>
+                                    <button class="btn btn-sm btn-danger" th:onclick="|finishWork(${activeRecord.id})|">근무 종료</button>
+                                </div>
                             </div>
                             <div th:if="${activeRecord != null && activeRecord.workspace.id != ws.id}">
                                 <span class="badge bg-secondary">다른 곳에서 근무 중</span>
@@ -149,6 +153,56 @@
         } else {
             alert('이 브라우저는 위치 정보를 지원하지 않습니다.');
         }
+    }
+
+    function startBreak(recordId) {
+        if (!confirm('휴식을 시작하시겠습니까?')) return;
+
+        const params = new URLSearchParams();
+        params.append('recordId', recordId);
+
+        fetch('/work/break/start', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: params
+        }).then(response => {
+            if (response.ok) {
+                alert('휴식이 시작되었습니다.');
+                location.reload();
+            } else {
+                response.text().then(text => alert('실패: ' + text));
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            alert('오류가 발생했습니다.');
+        });
+    }
+
+    function finishBreak(recordId) {
+        if (!confirm('휴식을 종료하시겠습니까?')) return;
+
+        const params = new URLSearchParams();
+        params.append('recordId', recordId);
+
+        fetch('/work/break/finish', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: params
+        }).then(response => {
+            if (response.ok) {
+                alert('휴식이 종료되었습니다.');
+                location.reload();
+            } else {
+                response.text().then(text => alert('실패: ' + text));
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            alert('오류가 발생했습니다.');
+        });
     }
 
     function finishWork(recordId) {

@@ -32,6 +32,10 @@ public class WorkRecord {
 
     private LocalDateTime endTime;
 
+    private LocalDateTime breakStartTime;
+
+    private Integer totalBreakMinutes = 0;
+
     private Double startLatitude;
 
     private Double startLongitude;
