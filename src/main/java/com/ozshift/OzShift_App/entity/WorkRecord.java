@@ -44,6 +44,8 @@ public class WorkRecord {
 
     private Double endLongitude;
 
+    private Double appliedHourlyRate;
+
     @Enumerated(EnumType.STRING)
     private ApprovalStatus status = ApprovalStatus.PENDING;
 

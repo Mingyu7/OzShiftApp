@@ -21,4 +21,7 @@ public class Workspace {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id")
     private User manager;
+
+    @Column(nullable = false)
+    private Double defaultHourlyRate = 10000.0;
 }

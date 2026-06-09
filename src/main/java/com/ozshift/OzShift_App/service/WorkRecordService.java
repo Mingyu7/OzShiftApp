@@ -47,6 +47,9 @@ public class WorkRecordService {
         workRecord.setStartLatitude(latitude);
         workRecord.setStartLongitude(longitude);
         workRecord.setStatus(WorkRecord.ApprovalStatus.PENDING);
+        
+        // 현재 시점의 시급 정보 저장 (Snapshot)
+        workRecord.setAppliedHourlyRate(workspace.getDefaultHourlyRate());
 
         workRecordRepository.save(workRecord);
     }
@@ -122,10 +125,9 @@ public class WorkRecordService {
     private void calculateAndApplyEarnings(WorkRecord record) {
         if (record.getEndTime() == null) return;
 
-        double hourlyRate = 10000.0; // 기본 시급 (설정값이 없을 경우)
-        if (record.getShift() != null && record.getShift().getHourlyRate() != null) {
-            hourlyRate = record.getShift().getHourlyRate();
-        }
+        // 저장된 시점의 시급 사용, 없으면 워크스페이스 기본값, 그것도 없으면 10000원
+        double hourlyRate = record.getAppliedHourlyRate() != null ? record.getAppliedHourlyRate() : 
+                           (record.getWorkspace() != null ? record.getWorkspace().getDefaultHourlyRate() : 10000.0);
 
         long durationMinutes = java.time.Duration.between(record.getStartTime(), record.getEndTime()).toMinutes();
         long actualWorkMinutes = durationMinutes - record.getTotalBreakMinutes();
