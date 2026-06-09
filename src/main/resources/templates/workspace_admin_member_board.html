@@ -83,7 +83,16 @@
                 </thead>
                 <tbody>
                     <tr th:each="member : ${members}">
-                        <td class="member-col" th:text="${member.user.name}">Member Name</td>
+                        <td class="member-col">
+                            <div th:text="${member.user.name}">Member Name</div>
+                            <!-- 매니저 본인이 아닌 경우에만 강퇴 버튼 표시 -->
+                            <div th:if="${workspace.manager.id != member.user.id}" class="mt-2">
+                                <form th:action="@{/workspace/{wid}/admin/member/kick/{mid}(wid=${workspace.id}, mid=${member.id})}" 
+                                      method="post" onsubmit="return confirm('정말로 이 멤버를 강퇴하시겠습니까?');">
+                                    <button type="submit" class="btn btn-link text-danger p-0 small" style="font-size: 0.75rem; text-decoration: none;">강퇴</button>
+                                </form>
+                            </div>
+                        </td>
                         <td th:each="date : ${weekDates}" 
                             th:classappend="${date.equals(T(java.time.LocalDate).now())} ? 'today-highlight' : ''">
                             <!-- 이 멤버의 해당 날짜 시프트들 필터링 -->

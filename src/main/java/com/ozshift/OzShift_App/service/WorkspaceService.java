@@ -86,4 +86,26 @@ public class WorkspaceService {
 
         memberRepository.save(member);
     }
+
+    @Transactional
+    public void kickMember(Long workspaceId, Long memberId, String managerEmail) {
+        Workspace workspace = getWorkspaceById(workspaceId);
+        User manager = userRepository.findByEmail(managerEmail)
+                .orElseThrow(() -> new IllegalArgumentException("관리자를 찾을 수 없습니다."));
+
+        // 요청자가 매니저인지 확인
+        if (!workspace.getManager().getId().equals(manager.getId())) {
+            throw new SecurityException("관리자만 멤버를 강퇴할 수 있습니다.");
+        }
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 멤버를 찾을 수 없습니다."));
+
+        // 매니저 본인은 강퇴할 수 없음
+        if (member.getUser().getId().equals(manager.getId())) {
+            throw new IllegalStateException("관리자 본인은 강퇴할 수 없습니다.");
+        }
+
+        memberRepository.delete(member);
+    }
 }

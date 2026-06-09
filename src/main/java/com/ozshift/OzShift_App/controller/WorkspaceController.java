@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import org.springframework.web.bind.annotation.PostMapping;
+
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,8 +34,17 @@ public class WorkspaceController {
     private final ShiftService shiftService;
     private final UserService userService;
 
-    @GetMapping("/{workspaceId}")
-    public String workspaceCalendar(@PathVariable("workspaceId") Long workspaceId,
+    @PostMapping("/{workspaceId}/admin/member/kick/{memberId}")
+    public String kickMember(@PathVariable("workspaceId") Long workspaceId,
+                             @PathVariable("memberId") Long memberId,
+                             @AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails != null) {
+            workspaceService.kickMember(workspaceId, memberId, userDetails.getUsername());
+        }
+        return "redirect:/workspace/" + workspaceId + "/admin/board";
+    }
+
+    @GetMapping("/{workspaceId}")    public String workspaceCalendar(@PathVariable("workspaceId") Long workspaceId,
                                   @AuthenticationPrincipal UserDetails userDetails,
                                   Model model) {
         if (userDetails == null) {
