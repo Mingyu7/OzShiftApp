@@ -28,9 +28,8 @@ public class WorkRecordService {
     public void autoApproveRecordsAtMidnight() {
         List<WorkRecord> pendingRecords = workRecordRepository.findByStatusAndEndTimeIsNotNull(WorkRecord.ApprovalStatus.PENDING);
         for (WorkRecord record : pendingRecords) {
-            record.setStatus(WorkRecord.ApprovalStatus.APPROVED);
+            approveRecord(record.getId()); // Use the approveRecord method to ensure earnings are calculated
         }
-        workRecordRepository.saveAll(pendingRecords);
         System.out.println("DEBUG: Auto-approved " + pendingRecords.size() + " work records at midnight.");
     }
 
@@ -105,18 +104,38 @@ public class WorkRecordService {
     public WorkRecord getActiveRecord(String username) {
         User user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        return workRecordRepository.findAll().stream()
-                .filter(r -> r.getUser().getId().equals(user.getId()) && r.getEndTime() == null)
-                .findFirst()
-                .orElse(null);
+        return workRecordRepository.findByUserAndEndTimeIsNull(user).orElse(null);
     }
 
     @Transactional
     public void approveRecord(Long recordId) {
         WorkRecord record = workRecordRepository.findById(recordId)
                 .orElseThrow(() -> new IllegalArgumentException("Record not found"));
-        record.setStatus(WorkRecord.ApprovalStatus.APPROVED);
-        workRecordRepository.save(record);
+        
+        if (record.getStatus() == WorkRecord.ApprovalStatus.PENDING) {
+            record.setStatus(WorkRecord.ApprovalStatus.APPROVED);
+            calculateAndApplyEarnings(record);
+            workRecordRepository.save(record);
+        }
+    }
+
+    private void calculateAndApplyEarnings(WorkRecord record) {
+        if (record.getEndTime() == null) return;
+
+        double hourlyRate = 10000.0; // 기본 시급 (설정값이 없을 경우)
+        if (record.getShift() != null && record.getShift().getHourlyRate() != null) {
+            hourlyRate = record.getShift().getHourlyRate();
+        }
+
+        long durationMinutes = java.time.Duration.between(record.getStartTime(), record.getEndTime()).toMinutes();
+        long actualWorkMinutes = durationMinutes - record.getTotalBreakMinutes();
+        
+        if (actualWorkMinutes > 0) {
+            double earned = (actualWorkMinutes / 60.0) * hourlyRate;
+            User user = record.getUser();
+            user.setTotalEarnings(user.getTotalEarnings() + earned);
+            userRepository.save(user);
+        }
     }
 
     @Transactional

@@ -7,8 +7,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
+import java.util.Optional;
+
 public interface WorkRecordRepository extends JpaRepository<WorkRecord, Long> {
     List<WorkRecord> findByWorkspace(Workspace workspace);
     List<WorkRecord> findByUserOrderByStartTimeDesc(User user);
     List<WorkRecord> findByStatusAndEndTimeIsNotNull(WorkRecord.ApprovalStatus status);
+    Optional<WorkRecord> findByUserAndEndTimeIsNull(User user);
 }
