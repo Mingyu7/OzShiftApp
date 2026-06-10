@@ -85,8 +85,16 @@
                     <tr th:each="member : ${members}">
                         <td class="member-col">
                             <div th:text="${member.user.name}">Member Name</div>
-                            <!-- 매니저 본인이 아닌 경우에만 강퇴 버튼 표시 -->
-                            <div th:if="${workspace.manager.id != member.user.id}" class="mt-2">
+                            <!-- 경고 횟수 표시 -->
+                            <div class="mt-1">
+                                <span class="badge bg-warning text-dark" th:text="'경고: ' + ${member.warningCount} + '/' + ${workspace.maxWarningCount}">경고: 0/3</span>
+                            </div>
+                            <!-- 매니저 본인이 아닌 경우에만 경고/강퇴 버튼 표시 -->
+                            <div th:if="${workspace.manager.id != member.user.id}" class="mt-2 d-flex justify-content-center gap-2">
+                                <form th:action="@{/workspace/{wid}/admin/member/warn/{mid}(wid=${workspace.id}, mid=${member.id})}" 
+                                      method="post" onsubmit="return confirm('이 멤버에게 경고를 주시겠습니까? 누적 시 자동 강퇴됩니다.');">
+                                    <button type="submit" class="btn btn-link text-warning p-0 small" style="font-size: 0.75rem; text-decoration: none;">경고</button>
+                                </form>
                                 <form th:action="@{/workspace/{wid}/admin/member/kick/{mid}(wid=${workspace.id}, mid=${member.id})}" 
                                       method="post" onsubmit="return confirm('정말로 이 멤버를 강퇴하시겠습니까?');">
                                     <button type="submit" class="btn btn-link text-danger p-0 small" style="font-size: 0.75rem; text-decoration: none;">강퇴</button>

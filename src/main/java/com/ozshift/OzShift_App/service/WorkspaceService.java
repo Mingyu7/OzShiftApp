@@ -108,4 +108,32 @@ public class WorkspaceService {
 
         memberRepository.delete(member);
     }
+
+    @Transactional
+    public void addWarning(Long workspaceId, Long memberId, String managerEmail) {
+        Workspace workspace = getWorkspaceById(workspaceId);
+        User manager = userRepository.findByEmail(managerEmail)
+                .orElseThrow(() -> new IllegalArgumentException("관리자를 찾을 수 없습니다."));
+
+        // 요청자가 매니저인지 확인
+        if (!workspace.getManager().getId().equals(manager.getId())) {
+            throw new SecurityException("관리자만 경고를 줄 수 있습니다.");
+        }
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 멤버를 찾을 수 없습니다."));
+
+        // 매니저 본인에게는 경고를 줄 수 없음
+        if (member.getUser().getId().equals(manager.getId())) {
+            throw new IllegalStateException("관리자 본인에게는 경고를 줄 수 없습니다.");
+        }
+
+        member.setWarningCount(member.getWarningCount() + 1);
+
+        if (member.getWarningCount() >= workspace.getMaxWarningCount()) {
+            memberRepository.delete(member);
+        } else {
+            memberRepository.save(member);
+        }
+    }
 }

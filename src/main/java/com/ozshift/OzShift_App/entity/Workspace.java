@@ -24,4 +24,7 @@ public class Workspace {
 
     @Column(nullable = false)
     private Double defaultHourlyRate = 10000.0;
+
+    @Column(nullable = false)
+    private int maxWarningCount = 3;
 }

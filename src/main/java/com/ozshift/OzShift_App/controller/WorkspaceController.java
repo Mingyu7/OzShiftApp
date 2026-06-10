@@ -44,6 +44,16 @@ public class WorkspaceController {
         return "redirect:/workspace/" + workspaceId + "/admin/board";
     }
 
+    @PostMapping("/{workspaceId}/admin/member/warn/{memberId}")
+    public String warnMember(@PathVariable("workspaceId") Long workspaceId,
+                             @PathVariable("memberId") Long memberId,
+                             @AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails != null) {
+            workspaceService.addWarning(workspaceId, memberId, userDetails.getUsername());
+        }
+        return "redirect:/workspace/" + workspaceId + "/admin/board";
+    }
+
     @GetMapping("/{workspaceId}")    public String workspaceCalendar(@PathVariable("workspaceId") Long workspaceId,
                                   @AuthenticationPrincipal UserDetails userDetails,
                                   Model model) {
