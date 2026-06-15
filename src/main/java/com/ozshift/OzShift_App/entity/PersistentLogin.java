@@ -4,10 +4,13 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "persistent_logins")
+@Getter @Setter
 public class PersistentLogin {
 
     @Id
@@ -22,37 +25,4 @@ public class PersistentLogin {
 
     @Column(name = "last_used", nullable = false)
     private LocalDateTime lastUsed;
-
-    // Getters and Setters
-    public String getSeries() {
-        return series;
-    }
-
-    public void setSeries(String series) {
-        this.series = series;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public LocalDateTime getLastUsed() {
-        return lastUsed;
-    }
-
-    public void setLastUsed(LocalDateTime lastUsed) {
-        this.lastUsed = lastUsed;
-    }
 }

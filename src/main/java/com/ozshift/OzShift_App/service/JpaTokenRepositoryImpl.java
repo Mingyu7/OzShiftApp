@@ -2,22 +2,21 @@ package com.ozshift.OzShift_App.service;
 
 import com.ozshift.OzShift_App.entity.PersistentLogin;
 import com.ozshift.OzShift_App.repository.PersistentLoginRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.web.authentication.rememberme.PersistentRememberMeToken;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
-@Component
+@Service
+@RequiredArgsConstructor
 public class JpaTokenRepositoryImpl implements PersistentTokenRepository {
 
     private final PersistentLoginRepository persistentLoginRepository;
-
-    public JpaTokenRepositoryImpl(PersistentLoginRepository persistentLoginRepository) {
-        this.persistentLoginRepository = persistentLoginRepository;
-    }
 
     @Override
     @Transactional
@@ -35,7 +34,7 @@ public class JpaTokenRepositoryImpl implements PersistentTokenRepository {
     public void updateToken(String series, String tokenValue, Date lastUsed) {
         persistentLoginRepository.findById(series).ifPresent(token -> {
             token.setToken(tokenValue);
-            token.setLastUsed(lastUsed.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime());
+            token.setLastUsed(LocalDateTime.ofInstant(lastUsed.toInstant(), ZoneId.systemDefault()));
             persistentLoginRepository.save(token);
         });
     }
@@ -48,7 +47,7 @@ public class JpaTokenRepositoryImpl implements PersistentTokenRepository {
                         token.getUsername(),
                         token.getSeries(),
                         token.getToken(),
-                        Date.from(token.getLastUsed().atZone(java.time.ZoneId.systemDefault()).toInstant())))
+                        Date.from(token.getLastUsed().atZone(ZoneId.systemDefault()).toInstant())))
                 .orElse(null);
     }
 

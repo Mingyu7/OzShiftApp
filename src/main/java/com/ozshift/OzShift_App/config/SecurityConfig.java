@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .permitAll()
                 )
                 .rememberMe(rememberMe -> rememberMe
+                        .key("uniqueAndSecret") // 고정된 키 추가
                         .rememberMeParameter("remember-me")
                         .tokenRepository(jpaTokenRepository)
                         .tokenValiditySeconds(86400 * 14) // 2주
